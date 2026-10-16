@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Union — Discord бот</title>
+<meta name="description" content="Union — королевский Discord-бот: экономика, кланы, розыгрыши и выборы.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --bg: #0a0805; --bg-alt: #12100a; --bg-card: #1a1710;
+    --gold: #d4af37; --gold-light: #f4d97b; --gold-dark: #8b6f1f;
+    --text: #f5f0e0; --text-muted: #a89f87; --border: #2a2519;
+    --success: #2ecc71; --purple: #9b59b6;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1, h2, h3, .logo-text, .hero-badge, .section-badge { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
+.gradient-text { background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* NAVBAR */
+.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10, 8, 5, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 22px; font-weight: 900; }
+.logo-crown { font-size: 26px; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)); }
+.logo-text { background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.nav-links { display: flex; gap: 28px; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 15px; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--gold); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: all 0.25s; font-family: inherit; }
+.btn-gold { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #1a1408; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5); }
+.btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold-dark); }
+.btn-outline:hover { background: rgba(212, 175, 55, 0.1); border-color: var(--gold); }
+.btn-purple { background: linear-gradient(135deg, #c084fc, var(--purple)); color: #fff; box-shadow: 0 4px 20px rgba(155, 89, 182, 0.3); }
+.btn-purple:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(155, 89, 182, 0.5); }
+.btn-lg { padding: 16px 32px; font-size: 17px; border-radius: 12px; }
+
+/* HERO */
+.hero { position: relative; padding: 160px 0 100px; text-align: center; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.15), transparent 60%), radial-gradient(circle at 20% 80%, rgba(139, 111, 31, 0.1), transparent 50%); }
+.hero-inner { position: relative; z-index: 1; }
+.hero-badge { display: inline-block; padding: 8px 20px; border-radius: 999px; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--gold); font-size: 13px; font-weight: 600; letter-spacing: 0.15em; margin-bottom: 24px; }
+.hero-title { font-size: clamp(64px, 12vw, 140px); font-weight: 900; line-height: 1; margin-bottom: 20px; filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.4)); }
+.hero-subtitle { font-size: clamp(16px, 2vw, 20px); color: var(--text-muted); max-width: 640px; margin: 0 auto 40px; }
+.hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 64px; }
+.hero-stats { display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap; padding: 24px; border-radius: 16px; background: rgba(26, 23, 16, 0.6); border: 1px solid var(--border); max-width: 640px; margin: 0 auto; }
+.hero-stat { text-align: center; }
+.hero-stat-value { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-stat-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.hero-stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+/* SECTIONS */
+.section { padding: 100px 0; }
+.section-dark { background: var(--bg-alt); }
+.section-header { text-align: center; margin-bottom: 64px; }
+.section-badge { display: inline-block; padding: 6px 16px; border-radius: 999px; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: 0.15em; margin-bottom: 16px; }
+.section-title { font-size: clamp(32px, 5vw, 48px); font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--text-muted); font-size: 17px; max-width: 600px; margin: 0 auto; }
+
+/* FEATURES */
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.feature-card { padding: 32px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border); transition: all 0.3s; }
+.feature-card:hover { transform: translateY(-4px); border-color: var(--gold-dark); box-shadow: 0 12px 40px rgba(212, 175, 55, 0.15); }
+.feature-icon { font-size: 40px; margin-bottom: 16px; }
+.feature-card h3 { font-size: 20px; margin-bottom: 10px; color: var(--gold); }
+.feature-card p { color: var(--text-muted); font-size: 15px; }
+
+/* TABS */
+.tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 40px; }
+.tab { padding: 10px 20px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.tab:hover { color: var(--gold); border-color: var(--gold-dark); }
+.tab.active { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #1a1408; border-color: var(--gold); font-weight: 700; }
+.commands-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.cmd-card { padding: 20px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); transition: all 0.2s; }
+.cmd-card:hover { border-color: var(--gold-dark); }
+.cmd-name { display: inline-block; padding: 4px 10px; border-radius: 6px; background: rgba(212, 175, 55, 0.12); color: var(--gold); font-family: 'Courier New', monospace; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.cmd-desc { color: var(--text-muted); font-size: 14px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px; }
+.stat-card { padding: 32px 20px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border); text-align: center; }
+.stat-icon { font-size: 36px; margin-bottom: 12px; }
+.stat-value { font-family: 'Cinzel', serif; font-size: 40px; font-weight: 700; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+.stat-label { color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; }
+.stats-note { text-align: center; color: var(--text-muted); font-size: 14px; }
+.stats-note a { color: var(--gold); }
+
+/* PREMIUM */
+.premium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: stretch; }
+.premium-card { position: relative; padding: 36px 28px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border); display: flex; flex-direction: column; transition: all 0.3s; }
+.premium-card:hover { transform: translateY(-6px); border-color: var(--gold-dark); box-shadow: 0 20px 60px rgba(212, 175, 55, 0.15); }
+.premium-card.featured { border: 2px solid var(--gold); background: linear-gradient(180deg, rgba(212, 175, 55, 0.08), var(--bg-card)); box-shadow: 0 0 60px rgba(212, 175, 55, 0.2); }
+.premium-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); padding: 6px 18px; border-radius: 999px; background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #1a1408; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4); }
+.premium-name { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: var(--gold); margin-bottom: 8px; text-align: center; }
+.premium-desc { color: var(--text-muted); font-size: 14px; text-align: center; margin-bottom: 24px; }
+.premium-price { text-align: center; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.premium-price-value { font-family: 'Cinzel', serif; font-size: 42px; font-weight: 900; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+.premium-price-period { color: var(--text-muted); font-size: 13px; margin-top: 6px; }
+.premium-features { list-style: none; margin-bottom: 28px; flex: 1; }
+.premium-features li { padding: 10px 0; color: var(--text); font-size: 14px; display: flex; align-items: flex-start; gap: 10px; }
+.premium-features li::before { content: '✦'; color: var(--gold); font-size: 14px; flex-shrink: 0; }
+.premium-features li.disabled { color: var(--text-muted); opacity: 0.5; }
+.premium-features li.disabled::before { content: '✕'; color: var(--text-muted); }
+.premium-card .btn { width: 100%; }
+
+/* DONATE */
+.donate-wrap { max-width: 800px; margin: 0 auto; padding: 48px 32px; border-radius: 24px; background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(212, 175, 55, 0.08)); border: 1px solid var(--border); text-align: center; }
+.donate-icon { font-size: 64px; margin-bottom: 16px; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4)); }
+.donate-title { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+.donate-text { color: var(--text-muted); font-size: 16px; max-width: 540px; margin: 0 auto 32px; }
+.donate-amounts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+.donate-amount { padding: 14px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.donate-amount:hover, .donate-amount.active { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.08); transform: translateY(-2px); }
+.donate-btn { width: 100%; max-width: 320px; }
+.donate-note { color: var(--text-muted); font-size: 13px; margin-top: 20px; }
+
+/* PARTNERS */
+.partners-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.partner-card { padding: 28px 20px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border); text-align: center; transition: all 0.3s; text-decoration: none; color: var(--text); display: block; }
+.partner-card:hover { transform: translateY(-4px); border-color: var(--gold-dark); box-shadow: 0 12px 40px rgba(212, 175, 55, 0.12); }
+.partner-logo { width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 36px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(155, 89, 182, 0.15)); border: 1px solid var(--border); }
+.partner-name { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--gold); }
+.partner-desc { color: var(--text-muted); font-size: 13px; }
+.partners-cta { text-align: center; margin-top: 40px; padding: 24px; border-radius: 16px; background: var(--bg-card); border: 1px dashed var(--border); }
+.partners-cta p { color: var(--text-muted); margin-bottom: 16px; font-size: 15px; }
+
+/* CTA */
+.cta { padding: 100px 0; text-align: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), transparent); }
+.cta h2 { font-size: clamp(28px, 4vw, 42px); margin-bottom: 16px; }
+.cta p { color: var(--text-muted); font-size: 18px; margin-bottom: 32px; }
+
+/* FAQ */
+.faq-list { max-width: 800px; margin: 0 auto; }
+.faq-item { margin-bottom: 12px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); overflow: hidden; }
+.faq-question { width: 100%; padding: 20px 24px; background: transparent; border: none; color: var(--text); font-family: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.faq-question span { color: var(--gold); font-size: 24px; transition: transform 0.3s; }
+.faq-item.open .faq-question span { transform: rotate(45deg); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s, padding 0.3s; padding: 0 24px; }
+.faq-item.open .faq-answer { max-height: 200px; padding: 0 24px 20px; }
+.faq-answer p { color: var(--text-muted); }
+.faq-answer code { background: rgba(212, 175, 55, 0.1); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+/* FOOTER */
+.footer { padding: 40px 0; border-top: 1px solid var(--border); background: var(--bg-alt); }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.footer-logo { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700; }
+.footer-text { color: var(--text-muted); font-size: 14px; }
+
+@media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero { padding: 120px 0 60px; }
+    .hero-buttons { flex-direction: column; }
+    .hero-stats { flex-direction: column; gap: 20px; }
+    .hero-stat-divider { width: 60px; height: 1px; }
+    .footer-inner { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="container nav-inner">
+        <a href="#" class="logo"><span class="logo-crown">👑</span><span class="logo-text">UNION</span></a>
+        <nav class="nav-links">
+            <a href="#features">Возможности</a>
+            <a href="#commands">Команды</a>
+            <a href="#premium">Premium</a>
+            <a href="#partners">Партнёры</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+        <a href="https://lolka.app/bot-authorize?client_id=ac0c3d46-7462-45a0-99a4-8da590ba2fff" class="btn btn-gold" target="_blank" rel="noopener">Добавить бота</a>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container hero-inner">
+        <div class="hero-badge">👑 ROYAL DISCORD BOT</div>
+        <h1 class="hero-title"><span class="gradient-text">UNION</span></h1>
+        <p class="hero-subtitle">Королевский Discord-бот с экономикой, кланами,<br>розыгрышами и системой выборов.</p>
+        <div class="hero-buttons">
+            <a href="https://lolka.app/bot-authorize?client_id=ac0c3d46-7462-45a0-99a4-8da590ba2fff" class="btn btn-gold btn-lg" target="_blank" rel="noopener">✨ Добавить на сервер</a>
+            <a href="#commands" class="btn btn-outline btn-lg">📜 Все команды</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-value" id="stat-servers">—</div><div class="hero-stat-label">Серверов</div></div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat"><div class="hero-stat-value" id="stat-users">—</div><div class="hero-stat-label">Пользователей</div></div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat"><div class="hero-stat-value">50+</div><div class="hero-stat-label">Команд</div></div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">ВОЗМОЖНОСТИ</div>
+            <h2 class="section-title">Всё для твоего сервера</h2>
+            <p class="section-desc">Union превратит обычный Discord-сервер в королевство с экономикой и кланами.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card"><div class="feature-icon">💰</div><h3>Royal Economy</h3><p>Баланс, ежедневные награды, работа, магазин и переводы между пользователями.</p></div>
+            <div class="feature-card"><div class="feature-icon">👑</div><h3>Кланы</h3><p>Создавай кланы, вкладывай в казну, улучшай уровень и борись за топ рейтинга.</p></div>
+            <div class="feature-card"><div class="feature-icon">🎉</div><h3>Розыгрыши</h3><p>Красивые розыгрыши с кнопкой участия, таймером и несколькими победителями.</p></div>
+            <div class="feature-card"><div class="feature-icon">🎁</div><h3>Промокоды</h3><p>Активируй промокоды и получай монеты. Ограничения по количеству активаций.</p></div>
+            <div class="feature-card"><div class="feature-icon">🗳️</div><h3>Выборы</h3><p>Полноценная система голосования за основателя Union с подсчётом результатов.</p></div>
+            <div class="feature-card"><div class="feature-icon">⚡</div><h3>Слэш-команды</h3><p>Все команды работают через современный интерфейс Discord с автодополнением.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-dark" id="commands">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">КОМАНДЫ</div>
+            <h2 class="section-title">Полный список команд</h2>
+            <p class="section-desc">Всё, что умеет Union — от простого /ping до выборов основателя.</p>
+        </div>
+        <div class="tabs">
+            <button class="tab active" data-tab="main">🎮 Основные</button>
+            <button class="tab" data-tab="economy">💰 Экономика</button>
+            <button class="tab" data-tab="clans">👑 Кланы</button>
+            <button class="tab" data-tab="giveaways">🎉 Розыгрыши</button>
+            <button class="tab" data-tab="elections">🗳️ Выборы</button>
+        </div>
+        <div class="commands-list" id="commands-list"></div>
+    </div>
+</section>
+
+<section class="section" id="premium">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">💎 PREMIUM</div>
+            <h2 class="section-title">Королевские тарифы</h2>
+            <p class="section-desc">Открой эксклюзивные возможности Union и стань лидером королевства.</p>
+        </div>
+        <div class="premium-grid">
+            <div class="premium-card">
+                <div class="premium-name">Гость</div>
+                <div class="premium-desc">Для всех пользователей Union</div>
+                <div class="premium-price"><div class="premium-price-value">0 ◈</div><div class="premium-price-period">навсегда</div></div>
+                <ul class="premium-features">
+                    <li>Экономика и баланс</li>
+                    <li>Создание клана</li>
+                    <li>Участие в розыгрышах</li>
+                    <li>Активация промокодов</li>
+                    <li>Голосование на выборах</li>
+                    <li class="disabled">Приоритетная поддержка</li>
+                    <li class="disabled">Уникальный значок профиля</li>
+                </ul>
+                <a href="https://lolka.app/bot-authorize?client_id=ac0c3d46-7462-45a0-99a4-8da590ba2fff" class="btn btn-outline" target="_blank" rel="noopener">Начать бесплатно</a>
+            </div>
+            <div class="premium-card featured">
+                <div class="premium-badge">⭐ Популярный</div>
+                <div class="premium-name">VIP</div>
+                <div class="premium-desc">Для активных участников</div>
+                <div class="premium-price"><div class="premium-price-value">199 ₽</div><div class="premium-price-period">в месяц</div></div>
+                <ul class="premium-features">
+                    <li>Всё из тарифа «Гость»</li>
+                    <li>Уникальный VIP-значок 👑</li>
+                    <li>×2 к ежедневной награде</li>
+                    <li>×2 к заработку на работе</li>
+                    <li>Расширенный инвентарь</li>
+                    <li>Приоритетная поддержка</li>
+                    <li class="disabled">Свой кастомный цвет ника</li>
+                </ul>
+                <a href="#donate" class="btn btn-gold">Оформить VIP</a>
+            </div>
+            <div class="premium-card">
+                <div class="premium-name">Royal</div>
+                <div class="premium-desc">Максимум возможностей</div>
+                <div class="premium-price"><div class="premium-price-value">499 ₽</div><div class="premium-price-period">в месяц</div></div>
+                <ul class="premium-features">
+                    <li>Всё из тарифа «VIP»</li>
+                    <li>×3 к ежедневной награде</li>
+                    <li>×3 к заработку на работе</li>
+                    <li>Кастомный цвет ника</li>
+                    <li>Личная королевская роль</li>
+                    <li>Создание своего промокода</li>
+                    <li>Приоритетная поддержка 24/7</li>
+                </ul>
+                <a href="#donate" class="btn btn-purple">Оформить Royal</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-dark" id="donate">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">❤️ ПОДДЕРЖКА</div>
+            <h2 class="section-title">Поддержи проект</h2>
+            <p class="section-desc">Union развивается благодаря тебе. Любой донат помогает боту расти.</p>
+        </div>
+        <div class="donate-wrap">
+            <div class="donate-icon">❤️</div>
+            <div class="donate-title">Поддержать Union</div>
+            <p class="donate-text">Твоя поддержка помогает оплачивать хостинг, разрабатывать новые фичи и держать бота онлайн 24/7.</p>
+            <div class="donate-amounts">
+                <button class="donate-amount" data-amount="50">50 ₽</button>
+                <button class="donate-amount active" data-amount="150">150 ₽</button>
+                <button class="donate-amount" data-amount="500">500 ₽</button>
+                <button class="donate-amount" data-amount="1000">1000 ₽</button>
+            </div>
+            <a href="https://www.donationalerts.com/r/toxxxaaa" target="_blank" rel="noopener" id="donate-btn" class="btn btn-gold btn-lg donate-btn">💛 Задонатить 150 ₽</a>
+            <p class="donate-note">🔒 Оплата через DonationAlerts. Средства идут на развитие бота.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="partners">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">📢 ПАРТНЁРЫ</div>
+            <h2 class="section-title">Наши партнёры</h2>
+            <p class="section-desc">Дружественные проекты и Discord-серверы, которые мы рекомендуем.</p>
+        </div>
+        <div class="partners-grid">
+            <a href="#" class="partner-card"><div class="partner-logo">🎮</div><div class="partner-name">Nexus Community</div><div class="partner-desc">Крупный игровой Discord-сервер</div></a>
+            <a href="#" class="partner-card"><div class="partner-logo">⚔️</div><div class="partner-name">Royal Legion</div><div class="partner-desc">Сообщество клановых войн</div></a>
+            <a href="#" class="partner-card"><div class="partner-logo">🎨</div><div class="partner-name">Pixel Studio</div><div class="partner-desc">Дизайн-студия Discord-оформления</div></a>
+            <a href="#" class="partner-card"><div class="partner-logo">🚀</div><div class="partner-name">DevHub</div><div class="partner-desc">Сообщество разработчиков ботов</div></a>
+        </div>
+        <div class="partners-cta">
+            <p>Хочешь стать партнёром Union? Напиши нам в поддержку.</p>
+            <a href="https://www.donationalerts.com/r/toxxxaaa" class="btn btn-outline" target="_blank" rel="noopener">📩 Связаться</a>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <div class="container">
+        <h2>Готов править своим королевством?</h2>
+        <p>Добавь Union на свой Discord-сервер за 10 секунд.</p>
+        <a href="https://lolka.app/bot-authorize?client_id=ac0c3d46-7462-45a0-99a4-8da590ba2fff" class="btn btn-gold btn-lg" target="_blank" rel="noopener">👑 Добавить Union</a>
+    </div>
+</section>
+
+<section class="section section-dark" id="faq">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">FAQ</div>
+            <h2 class="section-title">Частые вопросы</h2>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item"><button class="faq-question">Как добавить бота на сервер? <span>+</span></button><div class="faq-answer"><p>Нажми кнопку «Добавить Union» вверху страницы. Тебя перекинет на страницу авторизации, выбери сервер и подтверди права.</p></div></div>
+            <div class="faq-item"><button class="faq-question">Как активировать промокод? <span>+</span></button><div class="faq-answer"><p>Используй слэш-команду <code>/промокод</code> и введи код. Каждый пользователь может активировать код один раз.</p></div></div>
+            <div class="faq-item"><button class="faq-question">Как создать клан? <span>+</span></button><div class="faq-answer"><p>Набери <code>/клансоздать</code>, укажи тег (2–6 символов) и название. Стоимость создания — 5000 ◈ с баланса.</p></div></div>
+            <div class="faq-item"><button class="faq-question">Что даёт Premium-подписка? <span>+</span></button><div class="faq-answer"><p>VIP и Royal дают множители к наградам, уникальные значки, кастомный цвет ника и приоритетную поддержку.</p></div></div>
+            <div class="faq-item"><button class="faq-question">Куда идут донаты? <span>+</span></button><div class="faq-answer"><p>Все средства идут на оплату хостинга бота, разработку новых фич и поддержание стабильной работы 24/7.</p></div></div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container footer-inner">
+        <div class="footer-logo"><span class="logo-crown">👑</span> UNION</div>
+        <p class="footer-text">© <span id="year"></span> Union Bot. Все права защищены.</p>
+        <a href="https://lolka.app/bot-authorize?client_id=ac0c3d46-7462-45a0-99a4-8da590ba2fff" class="btn btn-outline" target="_blank" rel="noopener">Добавить бота</a>
+    </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const COMMANDS = {
+    main: [
+        { name: '/ping', desc: 'Проверить, работает ли бот' },
+        { name: '/hello', desc: 'Поздороваться с ботом' },
+        { name: '/say', desc: 'Отправить сообщение от имени бота' },
+        { name: '/help', desc: 'Показать список всех команд' },
+        { name: '/userinfo', desc: 'Информация о пользователе' },
+        { name: '/serverinfo', desc: 'Информация о сервере' }
+    ],
+    economy: [
+        { name: '/баланс', desc: 'Посмотреть свой баланс или баланс другого' },
+        { name: '/ежедневно', desc: 'Получить ежедневную награду' },
+        { name: '/работать', desc: 'Заработать монеты (раз в час)' },
+        { name: '/магазин', desc: 'Открыть премиум-магазин' },
+        { name: '/купить', desc: 'Купить предмет из магазина' },
+        { name: '/инвентарь', desc: 'Посмотреть свои предметы' },
+        { name: '/передать', desc: 'Передать монеты другому пользователю' },
+        { name: '/промокод', desc: 'Активировать промокод' }
+    ],
+    clans: [
+        { name: '/клансоздать', desc: 'Создать собственный клан (5000 ◈)' },
+        { name: '/кланинформация', desc: 'Информация о клане' },
+        { name: '/кланвступить', desc: 'Вступить в открытый клан' },
+        { name: '/кланвыйти', desc: 'Покинуть свой клан' },
+        { name: '/кланказна', desc: 'Посмотреть казну клана' },
+        { name: '/кланвложить', desc: 'Внести монеты в казну' },
+        { name: '/кланулучшить', desc: 'Улучшить уровень клана' },
+        { name: '/кланы', desc: 'Топ-10 кланов сервера' }
+    ],
+    giveaways: [
+        { name: '/розыгрыш', desc: 'Создать красивый розыгрыш с кнопкой участия' }
+    ],
+    elections: [
+        { name: '/выборы', desc: 'Проголосовать за кандидата в основатели Union' },
+        { name: '/итогивыборов', desc: 'Посмотреть результаты выборов' },
+        { name: '/завершитьвыборы', desc: 'Завершить выборы (только админ)' }
+    ]
+};
+
+function renderCommands(tab) {
+    document.getElementById('commands-list').innerHTML = COMMANDS[tab].map(cmd => `
+        <div class="cmd-card">
+            <div class="cmd-name">${cmd.name}</div>
+            <div class="cmd-desc">${cmd.desc}</div>
+        </div>
+    `).join('');
+}
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderCommands(tab.dataset.tab);
+    });
+});
+renderCommands('main');
+
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        document.querySelectorAll('.faq-item').forEach(i => { if (i !== item) i.classList.remove('open'); });
+        item.classList.toggle('open');
+    });
+});
+
+// ===== DONATE =====
+const donateButtons = document.querySelectorAll('.donate-amount');
+const donateBtn = document.getElementById('donate-btn');
+const DONATE_URL = 'https://www.donationalerts.com/r/toxxxaaa';
+let currentAmount = 150;
+
+donateButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        donateButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentAmount = btn.dataset.amount;
+        donateBtn.textContent = `💛 Задонатить ${currentAmount} ₽`;
+        donateBtn.href = DONATE_URL;
+    });
+});
+donateBtn.href = DONATE_URL;
+
+// ===== СТАТИСТИКА =====
+const API_URL = '';
+async function loadStats() {
+    if (!API_URL) {
+        document.getElementById('stat-servers').textContent = '—';
+        document.getElementById('stat-users').textContent = '—';
+        return;
+    }
+    try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        document.getElementById('stat-servers').textContent = (data.servers ?? 0).toLocaleString('ru-RU');
+        document.getElementById('stat-users').textContent = (data.users ?? 0).toLocaleString('ru-RU');
+    } catch (err) { console.error(err); }
+}
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>
